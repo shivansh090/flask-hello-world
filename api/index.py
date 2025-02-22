@@ -4,8 +4,14 @@ import os
 from flask import Flask, request, send_file
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from datetime import datetime
+import logging
 
 app = Flask(__name__)
+
+# Disable Flask's default logging
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 # Load email credentials from environment variables
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
@@ -18,13 +24,14 @@ TRACKING_PIXEL = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x
 
 @app.route('/')
 def home():
-    """Homepage to confirm the service is running."""
     return "✅ Tracking Pixel Service is Running!"
 
 @app.route('/pixel.png')
 def tracking_pixel():
-    """Serves a tracking pixel and logs email opens only when the pixel is requested."""
-    print(f"📩 Email opened by: {request.remote_addr}")
+    """Logs time and IP when the pixel is loaded (email opened)."""
+    ip_address = request.remote_addr
+    open_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"📍 Email opened from IP: {ip_address} at {open_time}")
     return send_file(io.BytesIO(TRACKING_PIXEL), mimetype='image/png')
 
 def send_email_with_tracking(recipient_email):
@@ -39,7 +46,6 @@ def send_email_with_tracking(recipient_email):
         msg['To'] = recipient_email
         msg['Subject'] = 'Tracked Email'
 
-        # Use your Vercel-deployed URL here
         vercel_tracking_url = "https://flask-hello-world-henna-gamma.vercel.app/pixel.png"
         html = f"""
         <html>
@@ -56,7 +62,7 @@ def send_email_with_tracking(recipient_email):
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(EMAIL_ADDRESS, recipient_email, msg.as_string())
 
-        print(f"✅ Email sent successfully to {recipient_email} with tracking pixel.")
+        print(f"✅ Email sent to {recipient_email}")
 
     except Exception as e:
         print(f"❌ Error sending email: {e}")
