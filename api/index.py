@@ -7,11 +7,12 @@ from email.mime.text import MIMEText
 from datetime import datetime
 import logging
 
-app = Flask(__name__)
-
-# Disable Flask's default logging
+# Disable default logs
 log = logging.getLogger('werkzeug')
 log.disabled = True
+logging.getLogger().disabled = True
+
+app = Flask(__name__)
 
 # Load email credentials from environment variables
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
@@ -19,7 +20,7 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
 
-# Tracking pixel (1x1 transparent PNG)
+# Tracking pixel
 TRACKING_PIXEL = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\x0eIDATx\x9cc\x62\x60\x60\x60\x00\x00\x00\x04\x00\x01\xf4\xce\x0f\x0e\x00\x00\x00\x00IEND\xaeB`\x82'
 
 @app.route('/')
@@ -31,13 +32,14 @@ def tracking_pixel():
     """Logs time and IP when the pixel is loaded (email opened)."""
     ip_address = request.remote_addr
     open_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"📍 Email opened from IP: {ip_address} at {open_time}")
+    formatted_log = f"📍 **Email opened**\n🕒 Time: {open_time}\n🌍 IP Address: {ip_address}"
+    print(formatted_log)
     return send_file(io.BytesIO(TRACKING_PIXEL), mimetype='image/png')
 
 def send_email_with_tracking(recipient_email):
     """Sends an email with a tracking pixel."""
     if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
-        print("❌ Email credentials are missing. Check environment variables.")
+        print("❌ Email credentials are missing.")
         return
 
     try:
