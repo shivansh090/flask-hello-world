@@ -40,7 +40,7 @@ def send_email_with_tracking(recipient_email):
         msg['Subject'] = 'Tracked Email'
 
         # Use your Render service URL after deploying
-        render_tracking_url = "https://your-render-url.onrender.com/pixel.png"
+        render_tracking_url = "https://flask-hello-world-henna-gamma.vercel.app/pixel.png"
         html = f"""
         <html>
           <body>
