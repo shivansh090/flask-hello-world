@@ -23,7 +23,7 @@ def home():
 
 @app.route('/pixel.png')
 def tracking_pixel():
-    """Serves a tracking pixel and logs email opens."""
+    """Serves a tracking pixel and logs email opens only when the pixel is requested."""
     print(f"📩 Email opened by: {request.remote_addr}")
     return send_file(io.BytesIO(TRACKING_PIXEL), mimetype='image/png')
 
@@ -39,13 +39,13 @@ def send_email_with_tracking(recipient_email):
         msg['To'] = recipient_email
         msg['Subject'] = 'Tracked Email'
 
-        # Use your Render service URL after deploying
-        render_tracking_url = "https://flask-hello-world-henna-gamma.vercel.app/pixel.png"
+        # Use your Vercel-deployed URL here
+        vercel_tracking_url = "https://flask-hello-world-henna-gamma.vercel.app/pixel.png"
         html = f"""
         <html>
           <body>
             <p>Hello, this email contains a tracking pixel.</p>
-            <img src="{render_tracking_url}" alt="" style="display:none;" />
+            <img src="{vercel_tracking_url}" alt="" style="display:none;" />
           </body>
         </html>
         """
@@ -55,8 +55,8 @@ def send_email_with_tracking(recipient_email):
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(EMAIL_ADDRESS, recipient_email, msg.as_string())
-        
-        print("✅ Email sent successfully with tracking pixel.")
+
+        print(f"✅ Email sent successfully to {recipient_email} with tracking pixel.")
 
     except Exception as e:
         print(f"❌ Error sending email: {e}")
